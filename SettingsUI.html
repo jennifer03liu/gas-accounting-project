@@ -47,7 +47,19 @@
             <input type="text" id="subjectNormal">
             <label for="bodyNormal" style="font-weight:normal; margin-top:10px;">內文 (純文字)</label>
             <textarea id="bodyNormal"></textarea>
-            <div class="placeholder-info">可用預留位置: <code>{{rocYear}}</code>, <code>{{currentMonth}}</code>, <code>{{deadlineDate}}</code></div>
+            <div class="placeholder-info" style="line-height: 1.6;">
+                <b>自動文字 (可直接複製貼上使用):</b>
+                <ul style="margin: 5px 0; padding-left: 20px;">
+                    <li><code>{{rocYear}}</code> 會在寄信時自動變成 <b>當前民國年</b> (例如: 114)</li>
+                    <li><code>{{currentMonth}}</code> 會在寄信時自動變成 <b>當前月份</b> (例如: 9)</li>
+                    <li><code>{{deadlineDate}}</code> 會自動變成 <b>次月5號</b> 的日期</li>
+                </ul>
+                <b>如何加上超連結:</b>
+                <ul style="margin: 5px 0; padding-left: 20px;">
+                    <li>格式為 <code>[想顯示的文字](網址)</code></li>
+                    <li>例如: <code>[管理中心小幫手](https://...)</code></li>
+                </ul>
+            </div>
         </div>
 
         <!-- Template for Dec -->
@@ -60,7 +72,19 @@
             <input type="text" id="subjectDecember">
             <label for="bodyDecember" style="font-weight:normal; margin-top:10px;">內文 (純文字)</label>
             <textarea id="bodyDecember"></textarea>
-            <div class="placeholder-info">可用預留位置: <code>{{rocYear}}</code>, <code>{{currentMonth}}</code>, <code>{{nextRocYear}}</code></div>
+            <div class="placeholder-info" style="line-height: 1.6;">
+                <b>自動文字 (可直接複製貼上使用):</b>
+                <ul style="margin: 5px 0; padding-left: 20px;">
+                    <li><code>{{rocYear}}</code> 會在寄信時自動變成 <b>當前民國年</b> (例如: 114)</li>
+                    <li><code>{{currentMonth}}</code> 會在寄信時自動變成 <b>當前月份</b> (例如: 12)</li>
+                    <li><code>{{nextRocYear}}</code> 會自動變成 <b>明年的民國年</b> (例如: 115)</li>
+                </ul>
+                <b>如何加上超連結:</b>
+                <ul style="margin: 5px 0; padding-left: 20px;">
+                    <li>格式為 <code>[想顯示的文字](網址)</code></li>
+                    <li>例如: <code>[管理中心小幫手](https://...)</code></li>
+                </ul>
+            </div>
         </div>
 
         <button onclick="saveSettings()">儲存設定</button>

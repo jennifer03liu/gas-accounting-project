@@ -194,13 +194,13 @@ function _coreSendEmail(recipient, isTriggered) {
 // =================================================================
 
 /**
- * 【NEW】將純文字內文與固定的HTML結構組合成最終的郵件內容。
+ * 【NEW & FIXED】將純文字內文與固定的HTML結構組合成最終的郵件內容。
  * @param {string} plainTextBody - 使用者輸入的純文字內文。
  * @returns {string} - 組合後的 HTML 字串。
  */
 function assembleHtmlBody(plainTextBody) {
   // 1. Convert Markdown links to HTML anchor tags, ensuring they open in a new tab.
-  let processedText = plainTextBody.replace(/\*\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+  let processedText = plainTextBody.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
 
   // 2. Convert user's plain text newlines to <br> tags.
   const userContentHtml = processedText.replace(/\n/g, '<br>');
@@ -227,9 +227,6 @@ function getGmailSignature() {
     if (sendAs && sendAs.signature) {
       console.log('成功取得 Gmail 簽名檔。');
       return sendAs.signature;
-    } else {
-      console.log('在 Gmail 設定中找不到預設簽名檔。');
-      return '';
     }
   } catch (e) {
     console.error(`取得 Gmail 簽名檔時發生錯誤: ${e.message}. 請確認您已在編輯器的「服務」中啟用 Gmail API。`);
