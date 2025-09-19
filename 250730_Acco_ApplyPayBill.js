@@ -1,8 +1,7 @@
 /**
  * @fileoverview 這是一個 Google Apps Script 範本，用於每月在指定日期自動寄送 Email。
  * 此版本可透過 UI 設定參數、預覽信件、並寄送預覽信，且會自動抓取 Gmail 簽名檔。
- * 修正了在自動觸發器環境下無法使用 UI 的問題。
- * @version 10.0 (Refactored to separate content from presentation)
+ * @version 11.0 (Implemented Rich Text Editor for full content editability)
  */
 
 // =================================================================
@@ -30,7 +29,7 @@ function onOpen() {
 function showSettingsDialog() {
   const html = HtmlService.createHtmlOutputFromFile('SettingsUI')
       .setWidth(850) 
-      .setHeight(600); // Increased height for new fields
+      .setHeight(650); // Increased height for TinyMCE editor
   SpreadsheetApp.getUi().showModalDialog(html, '設定郵件參數');
 }
 
@@ -41,10 +40,10 @@ function showSettingsDialog() {
  */
 function saveSettings(settings) {
   try {
-    // Remove old properties to avoid confusion
-    scriptProperties.deleteProperty('mainContentNormal');
-    scriptProperties.deleteProperty('mainContentDecember');
-    
+    // Clean up old, now obsolete properties
+    const oldKeys = ['subjectNormal', 'bodyNormal', 'subjectDecember', 'bodyDecember'];
+    oldKeys.forEach(key => scriptProperties.deleteProperty(key));
+
     scriptProperties.setProperties(settings);
     console.log('設定已儲存:', settings);
     return '設定已成功儲存！';
@@ -131,54 +130,34 @@ function sendPreviewToSelf() {
 }
 
 /**
- * 【核心修改】核心的郵件寄送函式。
+ * 【SIMPLIFIED】核心的郵件寄送函式。
  * @param {string} recipient - 收件人的 Email 地址。
  * @param {boolean} isTriggered - 判斷此呼叫是否來自自動觸發器。
  */
 function _coreSendEmail(recipient, isTriggered) {
   const settings = scriptProperties.getProperties();
   const senderName = settings.senderName;
-
+  
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
-  const currentYear = now.getFullYear();
-  const rocYear = currentYear - 1911;
   
-  let subjectTemplate, bodyTemplate, deadlineText;
+  const template = (currentMonth === 12) ? settings.mainContentDecember : settings.mainContentNormal;
 
-  if (currentMonth === 12) {
-    subjectTemplate = settings.subjectDecember;
-    bodyTemplate = settings.bodyDecember;
-    const nextRocYear = rocYear + 1;
-    deadlineText = `${nextRocYear}年1月5日前截止，遇假日則順延至次一工作日`;
-    // Replace placeholders
-    subjectTemplate = subjectTemplate.replace(/{{rocYear}}/g, rocYear).replace(/{{currentMonth}}/g, currentMonth).replace(/{{nextRocYear}}/g, nextRocYear);
-    bodyTemplate = bodyTemplate.replace(/{{rocYear}}/g, rocYear).replace(/{{currentMonth}}/g, currentMonth).replace(/{{nextRocYear}}/g, nextRocYear);
-  } else {
-    subjectTemplate = settings.subjectNormal;
-    bodyTemplate = settings.bodyNormal;
-    const nextMonth = currentMonth + 1;
-    const deadlineDate = `${rocYear}年${nextMonth}月5日`;
-    deadlineText = `${deadlineDate}前截止， 遇假日則順延至次一工作日`;
-    // Replace placeholders
-    subjectTemplate = subjectTemplate.replace(/{{rocYear}}/g, rocYear).replace(/{{currentMonth}}/g, currentMonth).replace(/{{deadlineDate}}/g, deadlineDate);
-    bodyTemplate = bodyTemplate.replace(/{{rocYear}}/g, rocYear).replace(/{{currentMonth}}/g, currentMonth).replace(/{{deadlineDate}}/g, deadlineDate);
-  }
-
-  if (!recipient || !subjectTemplate || !bodyTemplate) {
-    const errorMessage = '錯誤：收件者、信件主旨或內文範本尚未設定。請從「參數設定」中填寫。';
+  if (!recipient || !template) {
+    const errorMessage = '錯誤：收件者或信件範本尚未設定。請從「參數設定」中填寫。';
     if (isTriggered) { console.error(errorMessage); } 
     else { SpreadsheetApp.getUi().alert(errorMessage); }
     return;
   }
 
-  // 【NEW】Assemble the final HTML body
-  const finalHtmlBody = assembleHtmlBody(bodyTemplate);
+  const processedHtml = generatePreviewHtml(template, (currentMonth === 12) ? 'december' : 'normal');
+  const dynamicSubject = `【通知】${processedHtml.rocYear}年${processedHtml.currentMonth}月款項申請(至${processedHtml.deadlineText})`;
+
   const signature = getGmailSignature();
-  const fullBody = `<html><body style="font-family: 'Microsoft JhengHei', sans-serif; font-weight: bold;">${finalHtmlBody}${signature}</body></html>`;
+  const fullBody = `<html><body style="font-family: 'Microsoft JhengHei', sans-serif; font-weight: bold;">${processedHtml.body}${signature}</body></html>`;
 
   try {
-    const mailOptions = { to: recipient, subject: subjectTemplate, htmlBody: fullBody };
+    const mailOptions = { to: recipient, subject: dynamicSubject, htmlBody: fullBody };
     if (senderName) { mailOptions.name = senderName; }
     MailApp.sendEmail(mailOptions);
     console.log("郵件已成功寄送至: " + recipient);
@@ -194,29 +173,6 @@ function _coreSendEmail(recipient, isTriggered) {
 // =================================================================
 
 /**
- * 【NEW & FIXED】將純文字內文與固定的HTML結構組合成最終的郵件內容。
- * @param {string} plainTextBody - 使用者輸入的純文字內文。
- * @returns {string} - 組合後的 HTML 字串。
- */
-function assembleHtmlBody(plainTextBody) {
-  // 1. Convert Markdown links to HTML anchor tags, ensuring they open in a new tab.
-  let processedText = plainTextBody.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
-
-  // 2. Convert user's plain text newlines to <br> tags.
-  const userContentHtml = processedText.replace(/\n/g, '<br>');
-
-  // 3. Define the non-editable, important sections.
-  const importantNotice = '<p><span style="background-color:yellow; color:red; font-weight:bold;">即日起不受理逾期款項延後請款，遇假日則順延至次一工作日繳交，還請各位幫忙配合，感謝!!</span></p>';
-  const notes = '<p><span style="background-color:yellow; font-weight:bold;">請款注意事項：</span></p>' + 
-                '<p>l&nbsp;&nbsp;&nbsp;公司相關請款表單，請至雲端公檔查詢 <a href="https://drive.google.com/drive/folders/1mErE9a4yBYffjIMtOpqZg6x_axGFZF3Y?usp=drive_link" target="_blank">https://drive.google.com/drive/folders/1mErE9a4yBYffjIMtOpqZg6x_axGFZF3Y</a></p>' + 
-                '<p>l&nbsp;&nbsp;&nbsp;發票抬頭：各請款公司別的公司名稱及統一編號請注意不要打錯</p>' + 
-                '<p>l&nbsp;&nbsp;&nbsp;請款憑證金額及內容請先計算核對</p>';
-
-  // 4. Combine user content with the fixed sections.
-  return `<p>${userContentHtml}</p>${importantNotice}<br>${notes}`;
-}
-
-/**
  * 取得 Gmail 帳號設定的預設簽名檔。
  * @returns {string} - HTML 格式的簽名檔字串。
  */
@@ -227,6 +183,9 @@ function getGmailSignature() {
     if (sendAs && sendAs.signature) {
       console.log('成功取得 Gmail 簽名檔。');
       return sendAs.signature;
+    } else {
+        console.log('在 Gmail 設定中找不到預設簽名檔。');
+        return '';
     }
   } catch (e) {
     console.error(`取得 Gmail 簽名檔時發生錯誤: ${e.message}. 請確認您已在編輯器的「服務」中啟用 Gmail API。`);
@@ -235,33 +194,29 @@ function getGmailSignature() {
 }
 
 /**
- * 【核心修改】根據範本產生預覽用的 HTML 內容。
- * @param {object} templateObject - 包含 subject 和 body 的物件。
+ * 【SIMPLIFIED】根據範本產生預覽用的 HTML 內容，並替換所有變數。
+ * @param {string} templateHtml - 郵件內容的完整 HTML 範本。
  * @param {string} templateType - 'normal' 或 'december'。
- * @returns {string} - 替換完變數並加上簽名檔的完整 HTML。
+ * @returns {{body: string, deadlineText: string, rocYear: number, currentMonth: number}} - 包含已處理內文與其他變數的物件。
  */
-function generatePreviewHtml(templateObject, templateType) {
-  let { subject, body } = templateObject;
-
+function generatePreviewHtml(templateHtml, templateType) {
   const now = new Date();
   const currentMonth = (templateType === 'december') ? 12 : now.getMonth() + 1;
   const currentYear = now.getFullYear();
   const rocYear = currentYear - 1911;
+  let deadlineText = '';
+  let body = templateHtml;
 
   if (templateType === 'december') {
       const nextRocYear = rocYear + 1;
-      subject = subject.replace(/{{rocYear}}/g, rocYear).replace(/{{currentMonth}}/g, currentMonth).replace(/{{nextRocYear}}/g, nextRocYear);
+      deadlineText = `${nextRocYear}年1月5日前截止，遇假日則順延至次一工作日`;
       body = body.replace(/{{rocYear}}/g, rocYear).replace(/{{currentMonth}}/g, currentMonth).replace(/{{nextRocYear}}/g, nextRocYear);
   } else {
       const nextMonth = currentMonth + 1;
       const deadlineDate = `${rocYear}年${nextMonth}月5日`;
-      subject = subject.replace(/{{rocYear}}/g, rocYear).replace(/{{currentMonth}}/g, currentMonth).replace(/{{deadlineDate}}/g, deadlineDate);
+      deadlineText = `${deadlineDate}前截止， 遇假日則順延至次一工作日`;
       body = body.replace(/{{rocYear}}/g, rocYear).replace(/{{currentMonth}}/g, currentMonth).replace(/{{deadlineDate}}/g, deadlineDate);
   }
 
-  const finalHtmlBody = assembleHtmlBody(body);
-  const signature = getGmailSignature();
-  
-  // For preview, let's include the subject in the body so the user can see it.
-  return `<h4>主旨: ${subject}</h4><hr>${finalHtmlBody}${signature}`;
+  return { body, deadlineText, rocYear, currentMonth };
 }
