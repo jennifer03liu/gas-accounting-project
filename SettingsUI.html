@@ -7,7 +7,7 @@
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: bold; color: #333; }
         input[type="text"], input[type="email"] { width: 95%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
-        textarea { width: 95%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; min-height: 150px; white-space: pre-wrap; }
+        textarea { width: 95%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; min-height: 250px; white-space: pre-wrap; }
         button { padding: 12px 20px; background-color: #4285F4; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
         button:hover { background-color: #357ae8; }
         .preview-btn { background-color: #6c757d; font-size: 14px; padding: 8px 12px; margin-left: 10px; }
@@ -87,10 +87,10 @@
             document.getElementById('senderName').value = settings.senderName || '';
 
             const defaultSubjectNormal = '【通知】{{rocYear}}年{{currentMonth}}月款項申請(至{{deadlineDate}}前截止)';
-            const defaultBodyNormal = 'Dear All,\n\n{{rocYear}}年{{currentMonth}}月份尚未請款的個人費用(代墊款、差旅費等)及廠商款項申請,\n請於{{deadlineDate}}前送至會計處，若有來不及請款的同仁請先與我們聯絡,';
+            const defaultBodyNormal = 'Dear All,\n\n{{rocYear}}年{{currentMonth}}月份尚未請款的個人費用(代墊款、差旅費等)及廠商款項申請,\n請於{{deadlineDate}}前送至會計處，若有來不及請款的同仁請先與我們聯絡,\n\nl 如果有任何問題可以先查詢我們的管理中心小幫手 — [管理中心小幫手](https://notebooklm.google.com/notebook/fab65873-d66f-4bda-8ba4-4cff5a576d19)';
             
             const defaultSubjectDecember = '【通知】{{rocYear}}年{{currentMonth}}月款項申請';
-            const defaultBodyDecember = 'Dear All,\n\n{{rocYear}}年即將結束，請大家可以提前將{{currentMonth}}月份尚未請款的個人費用(代墊款、差旅費等)及廠商款項先送出來申請。\n\n另外，接近年底拿到的發票請注意若是{{nextRocYear}}年的不能拿來申請{{rocYear}}年的費用。\n\n請於{{nextRocYear}}年1月5日前送至會計處，若有來不及請款的同仁請先與我們聯絡。';
+            const defaultBodyDecember = 'Dear All,\n\n{{rocYear}}年即將結束，請大家可以提前將{{currentMonth}}月份尚未請款的個人費用(代墊款、差旅費等)及廠商款項先送出來申請。\n\n另外，接近年底拿到的發票請注意若是{{nextRocYear}}年的不能拿來申請{{rocYear}}年的費用。\n\n請於{{nextRocYear}}年1月5日前送至會計處，若有來不及請款的同仁請先與我們聯絡。\n\nl 如果有任何問題可以先查詢我們的管理中心小幫手 — [管理中心小幫手](https://notebooklm.google.com/notebook/fab65873-d66f-4bda-8ba4-4cff5a576d19)';
 
             document.getElementById('subjectNormal').value = settings.subjectNormal || defaultSubjectNormal;
             document.getElementById('bodyNormal').value = settings.bodyNormal || defaultBodyNormal;

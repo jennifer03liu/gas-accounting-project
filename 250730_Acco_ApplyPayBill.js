@@ -199,17 +199,20 @@ function _coreSendEmail(recipient, isTriggered) {
  * @returns {string} - 組合後的 HTML 字串。
  */
 function assembleHtmlBody(plainTextBody) {
-  // 1. Convert user's plain text newlines to <br> tags.
-  const userContentHtml = plainTextBody.replace(/\n/g, '<br>');
+  // 1. Convert Markdown links to HTML anchor tags, ensuring they open in a new tab.
+  let processedText = plainTextBody.replace(/\*\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
 
-  // 2. Define the non-editable, important sections.
+  // 2. Convert user's plain text newlines to <br> tags.
+  const userContentHtml = processedText.replace(/\n/g, '<br>');
+
+  // 3. Define the non-editable, important sections.
   const importantNotice = '<p><span style="background-color:yellow; color:red; font-weight:bold;">即日起不受理逾期款項延後請款，遇假日則順延至次一工作日繳交，還請各位幫忙配合，感謝!!</span></p>';
   const notes = '<p><span style="background-color:yellow; font-weight:bold;">請款注意事項：</span></p>' + 
                 '<p>l&nbsp;&nbsp;&nbsp;公司相關請款表單，請至雲端公檔查詢 <a href="https://drive.google.com/drive/folders/1mErE9a4yBYffjIMtOpqZg6x_axGFZF3Y?usp=drive_link" target="_blank">https://drive.google.com/drive/folders/1mErE9a4yBYffjIMtOpqZg6x_axGFZF3Y</a></p>' + 
                 '<p>l&nbsp;&nbsp;&nbsp;發票抬頭：各請款公司別的公司名稱及統一編號請注意不要打錯</p>' + 
                 '<p>l&nbsp;&nbsp;&nbsp;請款憑證金額及內容請先計算核對</p>';
 
-  // 3. Combine user content with the fixed sections.
+  // 4. Combine user content with the fixed sections.
   return `<p>${userContentHtml}</p>${importantNotice}<br>${notes}`;
 }
 
