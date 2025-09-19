@@ -33,82 +33,114 @@
             <input type="email" id="recipient">
         </div>
         <div class="form-group">
-            <!-- 【修改】這個 label 會被下面的 script 動態更新 -->
             <label for="senderName" id="senderNameLabel">寄件人顯示名稱</label>
             <input type="text" id="senderName">
         </div>
+
+        <!-- Template for Jan-Nov -->
         <div class="form-group template-section">
             <div class="label-container">
-                <label for="mainContentNormal">信件內文 (1-11月範本)</label>
+                <label>信件範本 (1-11月)</label>
                 <button class="preview-btn" onclick="previewEmail('normal')">預覽</button>
             </div>
-            <textarea id="mainContentNormal"></textarea>
+            <label for="subjectNormal" style="font-weight:normal; margin-top:10px;">主旨</label>
+            <input type="text" id="subjectNormal">
+            <label for="bodyNormal" style="font-weight:normal; margin-top:10px;">內文 (純文字)</label>
+            <textarea id="bodyNormal"></textarea>
             <div class="placeholder-info">可用預留位置: <code>{{rocYear}}</code>, <code>{{currentMonth}}</code>, <code>{{deadlineDate}}</code></div>
         </div>
+
+        <!-- Template for Dec -->
         <div class="form-group template-section">
             <div class="label-container">
-                <label for="mainContentDecember">信件內文 (12月範本)</label>
+                <label>信件範本 (12月)</label>
                 <button class="preview-btn" onclick="previewEmail('december')">預覽</button>
             </div>
-            <textarea id="mainContentDecember"></textarea>
+            <label for="subjectDecember" style="font-weight:normal; margin-top:10px;">主旨</label>
+            <input type="text" id="subjectDecember">
+            <label for="bodyDecember" style="font-weight:normal; margin-top:10px;">內文 (純文字)</label>
+            <textarea id="bodyDecember"></textarea>
             <div class="placeholder-info">可用預留位置: <code>{{rocYear}}</code>, <code>{{currentMonth}}</code>, <code>{{nextRocYear}}</code></div>
         </div>
+
         <button onclick="saveSettings()">儲存設定</button>
         <div id="status"></div>
     </div>
+
     <div id="preview-view" class="preview-view-container" style="display: none;">
         <div class="back-btn-container">
             <button class="back-btn" onclick="closePreview()">返回設定</button>
         </div>
         <div id="preview-content-area" class="preview-content-area"></div>
     </div>
+
     <script>
       window.onload = function() {
-        // 【修改】回傳的 data 結構已改變
         google.script.run.withSuccessHandler(function(data) {
             const settings = data.properties;
             const defaultSenderName = data.defaultSenderName;
 
-            // 動態更新 senderName 的標籤
             const senderNameLabel = document.getElementById('senderNameLabel');
             senderNameLabel.textContent = `寄件人顯示名稱 (選填，留空則使用預設名稱: ${defaultSenderName})`;
 
             document.getElementById('recipient').value = settings.recipient || 'tfgroup@trendforce.com,tritaipei@trendforce.com,tngroup@trendforce.com';
             document.getElementById('senderName').value = settings.senderName || '';
-            const defaultNormalContent = '<p>Dear All,</p><p>{{rocYear}}年{{currentMonth}}月份尚未請款的個人費用(代墊款、差旅費等)及廠商款項申請,<br>請於{{deadlineDate}}前送至會計處，若有來不及請款的同仁請先與我們聯絡,</p><p><span style="background-color:yellow; color:red; font-weight:bold;">即日起不受理逾期款項延後請款，遇假日則順延至次一工作日繳交，還請各位幫忙配合，感謝!!</span></p><br><p><span style="background-color:yellow; font-weight:bold;">請款注意事項：</span></p><p>l&nbsp;&nbsp;&nbsp;公司相關請款表單，請至雲端公檔查詢 <a href="https://drive.google.com/drive/folders/1mErE9a4yBYffjIMtOpqZg6x_axGFZF3Y?usp=drive_link" target="_blank">https://drive.google.com/drive/folders/1mErE9a4yBYffjIMtOpqZg6x_axGFZF3Y</a></p><p>l&nbsp;&nbsp;&nbsp;發票抬頭：各請款公司別的公司名稱及統一編號請注意不要打錯</p><p>l&nbsp;&nbsp;&nbsp;請款憑證金額及內容請先計算核對</p>';
-            const defaultDecemberContent = '<p>Dear All,</p><p>{{rocYear}}年即將結束，請大家可以提前將{{currentMonth}}月份尚未請款的個人費用(代墊款、差旅費等)及廠商款項先送出來申請。</p><p>另外，接近年底拿到的發票請注意若是{{nextRocYear}}年的不能拿來申請{{rocYear}}年的費用。</p><p>請於{{nextRocYear}}年1月5日前送至會計處，若有來不及請款的同仁請先與我們聯絡。</p><p><span style="background-color:yellow; color:red; font-weight:bold;">即日起不受理逾期款項延後請款，遇假日則順延至次一工作日繳交， 還請各位幫忙配合， 感謝!!</span></p><br><p><span style="background-color:yellow; font-weight:bold;">請款注意事項：</span></p><p>l&nbsp;&nbsp;&nbsp;公司相關請款表單，請至雲端公檔查詢 <a href="https://drive.google.com/drive/folders/1mErE9a4yBYffjIMtOpqZg6x_axGFZF3Y?usp=drive_link" target="_blank">https://drive.google.com/drive/folders/1mErE9a4yBYffjIMtOpqZg6x_axGFZF3Y</a></p><p>l&nbsp;&nbsp;&nbsp;發票抬頭：各請款公司別的公司名稱及統一編號請注意不要打錯</p><p>l&nbsp;&nbsp;&nbsp;請款憑證金額及內容請先計算核對</p>';
-            document.getElementById('mainContentNormal').value = settings.mainContentNormal || defaultNormalContent;
-            document.getElementById('mainContentDecember').value = settings.mainContentDecember || defaultDecemberContent;
+
+            const defaultSubjectNormal = '【通知】{{rocYear}}年{{currentMonth}}月款項申請(至{{deadlineDate}}前截止)';
+            const defaultBodyNormal = 'Dear All,\n\n{{rocYear}}年{{currentMonth}}月份尚未請款的個人費用(代墊款、差旅費等)及廠商款項申請,\n請於{{deadlineDate}}前送至會計處，若有來不及請款的同仁請先與我們聯絡,';
+            
+            const defaultSubjectDecember = '【通知】{{rocYear}}年{{currentMonth}}月款項申請';
+            const defaultBodyDecember = 'Dear All,\n\n{{rocYear}}年即將結束，請大家可以提前將{{currentMonth}}月份尚未請款的個人費用(代墊款、差旅費等)及廠商款項先送出來申請。\n\n另外，接近年底拿到的發票請注意若是{{nextRocYear}}年的不能拿來申請{{rocYear}}年的費用。\n\n請於{{nextRocYear}}年1月5日前送至會計處，若有來不及請款的同仁請先與我們聯絡。';
+
+            document.getElementById('subjectNormal').value = settings.subjectNormal || defaultSubjectNormal;
+            document.getElementById('bodyNormal').value = settings.bodyNormal || defaultBodyNormal;
+            document.getElementById('subjectDecember').value = settings.subjectDecember || defaultSubjectDecember;
+            document.getElementById('bodyDecember').value = settings.bodyDecember || defaultBodyDecember;
+
             document.getElementById('loader').style.display = 'none';
             document.getElementById('main-content').style.display = 'block';
         }).getSettings();
       };
+
       function saveSettings() {
         var statusDiv = document.getElementById('status');
         statusDiv.textContent = '儲存中...';
+        
         var settings = {
           recipient: document.getElementById('recipient').value,
           senderName: document.getElementById('senderName').value,
-          mainContentNormal: document.getElementById('mainContentNormal').value,
-          mainContentDecember: document.getElementById('mainContentDecember').value
+          subjectNormal: document.getElementById('subjectNormal').value,
+          bodyNormal: document.getElementById('bodyNormal').value,
+          subjectDecember: document.getElementById('subjectDecember').value,
+          bodyDecember: document.getElementById('bodyDecember').value
         };
+
         google.script.run.withSuccessHandler(function(response) {
             statusDiv.textContent = response;
             setTimeout(function(){ google.script.host.close(); }, 2000);
         }).saveSettings(settings);
       }
+
       function previewEmail(type) {
-        let templateHtml;
-        if (type === 'normal') { templateHtml = document.getElementById('mainContentNormal').value; } 
-        else { templateHtml = document.getElementById('mainContentDecember').value; }
+        let subject, body;
+        if (type === 'normal') {
+            subject = document.getElementById('subjectNormal').value;
+            body = document.getElementById('bodyNormal').value;
+        } else {
+            subject = document.getElementById('subjectDecember').value;
+            body = document.getElementById('bodyDecember').value;
+        }
+
         document.getElementById('loader').style.display = 'block';
         document.getElementById('main-content').style.display = 'none';
+
         google.script.run.withSuccessHandler(function(processedHtml) {
             document.getElementById('preview-content-area').innerHTML = processedHtml;
             document.getElementById('loader').style.display = 'none';
             document.getElementById('preview-view').style.display = 'block';
-        }).generatePreviewHtml(templateHtml, type);
+        }).generatePreviewHtml({ subject: subject, body: body }, type);
       }
+
       function closePreview() {
         document.getElementById('preview-view').style.display = 'none';
         document.getElementById('main-content').style.display = 'block';
