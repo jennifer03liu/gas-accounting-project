@@ -118,11 +118,11 @@ function _coreSendEmail(recipient, isTriggered) {
     const signature = getGmailSignature();
     const fullBody = `<html><body>${finalHtmlBody}${signature}</body></html>`;
 
-    MailApp.sendEmail({ 
-      to: recipient, 
-      subject: subject, 
-      htmlBody: fullBody, 
-      name: senderName 
+    MailApp.sendEmail({
+      to: recipient,
+      subject: subject,
+      htmlBody: fullBody,
+      name: senderName
     });
 
     console.log("郵件已成功寄送至: " + recipient);
@@ -176,19 +176,23 @@ function markdownToHtml(text) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
-  // Custom Tags
-  html = html.replace(/\*\*重要\*\*([^*]+)\*\*重要\*\*|重要([^重要]+)重要/g, '<span style="background-color:yellow; color:red; font-weight:bold;">$1$2</span>');
-  html = html.replace(/\*\*粗體\*\*([^*]+)\*\*粗體\*\*|粗體([^粗體]+)粗體/g, '<strong>$1$2</strong>');
+  // Custom Tags - Order is important
+  // Specific colored tags first
+  html = html.replace(/\*\*紅字\*\*(.+?)\*\*紅字\*\*/g, '<span style="background-color:#ffff00; color:#cc0000; font-weight:bold;">$1</span>');
+  html = html.replace(/\*\*黃底\*\*(.+?)\*\*黃底\*\*/g, '<span style="background-color:#ffff00; color:#000000; font-weight:bold;">$1</span>');
+  
+  // General bold tag
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   
   // Links
-  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+  html = html.replace(/\x5B([^\]]+?)\x5D\(([^)]+?)\)/g, '<a href="$2" target="_blank">$1</a>');
 
-  // List items
-  html = html.replace(/^\s*•\s+(.*)/gm, '<li>$1</li>');
+  // List items (handles 'l' or '•')
+  html = html.replace(/^\s*[l•]\s+(.*)/gm, '<li>$1</li>');
   html = html.replace(/(<li>.*<\/li>\s*)+/g, '<ul>$&</ul>');
 
   // Newlines
-  html = html.replace(/\n/g, '<br>\n');
+  html = html.replace(/\r\n|\n|\r/g, '<br>\n');
   html = html.replace(/<br>\n<ul>/g, '<ul>').replace(/<\/ul><br>\n/g, '</ul>');
 
   return html;

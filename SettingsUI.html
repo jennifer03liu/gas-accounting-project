@@ -15,9 +15,10 @@
             box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
         }
         textarea {
-            min-height: 300px; /* Requirement: Increased height */
+            min-height: 400px; /* Increased height for full content */
             white-space: pre-wrap;
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Microsoft JhengHei', sans-serif;
+            line-height: 1.5;
         }
         button { 
             padding: 12px 25px; 
@@ -30,33 +31,30 @@
             transition: background-color 0.3s;
         }
         button:hover { background-color: #357ae8; }
-        .action-btn { font-size: 14px; padding: 8px 15px; margin-left: 10px; }
-        .preview-btn { background-color: #6c757d; }
+        .preview-btn { background-color: #6c757d; font-size: 14px; padding: 8px 15px; margin-left: 10px; }
         .preview-btn:hover { background-color: #5a6268; }
-        .restore-btn { background-color: #ffc107; color: #212529; }
-        .restore-btn:hover { background-color: #e0a800; }
-
         #status { margin-top: 15px; font-style: italic; color: #28a745; font-weight: bold; }
         .template-section { border-top: 2px solid #eee; padding-top: 20px; margin-top: 20px; }
         .label-container { display: flex; align-items: center; justify-content: space-between; width: 95%; }
-        .label-buttons { display: flex; gap: 10px; }
         
-        /* Requirement: New format instructions block style */
+        /* Updated format instructions */
         .format-instructions {
             font-size: 13px;
             color: #333;
-            background-color: #f0f8ff; /* aliceblue */
-            border-left: 5px solid #4285F4; /* blue */
+            background-color: #fff8dc; /* lightgoldenrodyellow */
+            border-left: 5px solid #ff6b35; /* orange */
             padding: 15px;
             border-radius: 5px;
             margin-top: 10px;
-            line-height: 1.7;
+            line-height: 1.6;
         }
-        .format-instructions h4 { margin-top: 0; font-size: 15px; color: #005a9e; }
-        .format-instructions code { background-color: #e0e0e0; padding: 2px 5px; border-radius: 3px; font-family: 'Courier New', Courier, monospace; }
-        .format-instructions .example { color: #555; }
-        .format-instructions .tip { font-weight: bold; }
-
+        .format-instructions h4 { margin-top: 0; font-size: 16px; color: #d2691e; font-weight: bold; }
+        .format-instructions code { background-color: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', Courier, monospace; color: #d63384; }
+        .format-instructions .warning { color: #cc0000; font-weight: bold; background-color: #ffeeee; padding: 8px; border-radius: 3px; margin: 8px 0; }
+        .format-instructions .tip { font-weight: bold; color: #0066cc; }
+        .format-instructions ul { margin: 8px 0; padding-left: 20px; }
+        .format-instructions li { margin: 5px 0; }
+        
         #loader { text-align: center; padding-top: 80px; font-size: 16px; color: #666; }
         .preview-view-container { position: relative; padding-top: 50px; }
         .back-btn-container { position: absolute; top: 0px; left: 0px; }
@@ -77,80 +75,79 @@
             <label for="senderName" id="senderNameLabel">寄件人顯示名稱</label>
             <input type="text" id="senderName">
         </div>
-
         <!-- Template for Jan-Nov -->
         <div class="form-group template-section">
             <div class="label-container">
                 <label>信件範本 (1-11月)</label>
-                <div class="label-buttons">
-                    <button class="action-btn restore-btn" onclick="restoreDefaults('normal')">還原預設內容</button>
-                    <button class="action-btn preview-btn" onclick="previewEmail('normal')">預覽</button>
-                </div>
+                <button class="preview-btn" onclick="previewEmail('normal')">預覽</button>
             </div>
             <label for="subjectNormal" style="font-weight:normal; margin-top:10px;">主旨</label>
             <input type="text" id="subjectNormal">
             <label for="bodyNormal" style="font-weight:normal; margin-top:10px;">內文</label>
             <textarea id="bodyNormal"></textarea>
             <div class="format-instructions">
-                <h4>📝 格式說明</h4>
-                <p class="tip">特殊格式標記: (實際寄出時會自動轉換)</p>
+                <h4>⚠️ 重要說明 - 請仔細閱讀</h4>
+                <div class="warning">
+                    ❗ 以下格式標記和變數請勿隨意更改，否則可能導致格式錯誤：
+                </div>
+                
+                <p class="tip">🎨 特殊格式標記：</p>
                 <ul>
-                    <li><code>重要文字重要</code> → <span style="background-color:yellow; color:red; font-weight:bold;">黃底紅字</span></li>
-                    <li><code>粗體文字粗體</code> → <strong>粗體效果</strong></li>
+                    <li><code>**紅字**您的文字**紅字**</code> → <span style="background-color:#ffff00; color:#cc0000; font-weight:bold;">黃底紅字粗體</span> (用於重要警告)</li>
+                    <li><code>**黃底**您的文字**黃底**</code> → <span style="background-color:#ffff00; color:#000000; font-weight:bold;">黃底黑字粗體</span> (用於標題)</li>
+                    <li><code>**您的文字**</code> → <strong>一般粗體</strong></li>
                     <li><code>[顯示文字](網址)</code> → <a href="#">超連結</a></li>
-                    <li><code>• 項目符號</code> → <ul style="margin:0; padding-left:20px;"><li style="margin-left:-20px;">項目符號</li></ul></li>
+                    <li><code>l   項目內容</code> 或 <code>•   項目內容</code> → 項目符號清單</li>
                 </ul>
-                <p class="tip">💡 自動替換變數:</p>
-                <p class="tip" style="color: #c0392b;">注意：請務必保留 <code>{{...}}</code> 格式的變數，不要修改或刪除，以免信件內容不完整。</p>
+                
+                <p class="tip">🔄 自動替換變數 (請保持不變)：</p>
                 <ul>
-                    <li><code>{{rocYear}}</code>: 當前民國年 (e.g., 113)</li>
-                    <li><code>{{currentMonth}}</code>: 當前月份 (e.g., 9)</li>
-                    <li><code>{{deadlineDate}}</code>: 次月5號的日期</li>
+                    <li><code>{{rocYear}}</code> → 當前民國年 (例：113)</li>
+                    <li><code>{{currentMonth}}</code> → 當前月份 (例：8)</li>
+                    <li><code>{{deadlineDate}}</code> → 下月5日期限 (例：113年9月5日)</li>
+                </ul>
+                
+                <p class="tip">💡 使用建議：</p>
+                <ul>
+                    <li>修改內容時請保持現有的格式標記</li>
+                    <li>變數 {{}} 內的文字請勿更改</li>
+                    <li>修改後建議先按「預覽」確認效果</li>
                 </ul>
             </div>
         </div>
-
         <!-- Template for Dec -->
         <div class="form-group template-section">
             <div class="label-container">
                 <label>信件範本 (12月)</label>
-                <div class="label-buttons">
-                    <button class="action-btn restore-btn" onclick="restoreDefaults('december')">還原預設內容</button>
-                    <button class="action-btn preview-btn" onclick="previewEmail('december')">預覽</button>
-                </div>
+                <button class="preview-btn" onclick="previewEmail('december')">預覽</button>
             </div>
             <label for="subjectDecember" style="font-weight:normal; margin-top:10px;">主旨</label>
             <input type="text" id="subjectDecember">
             <label for="bodyDecember" style="font-weight:normal; margin-top:10px;">內文</label>
             <textarea id="bodyDecember"></textarea>
             <div class="format-instructions">
-                 <h4>📝 格式說明</h4>
-                <p class="tip">特殊格式標記: (同上)</p>
-                <p class="tip">💡 自動替換變數:</p>
-                <p class="tip" style="color: #c0392b;">注意：請務必保留 <code>{{...}}</code> 格式的變數，不要修改或刪除，以免信件內容不完整。</p>
+                <h4>⚠️ 重要說明 - 請仔細閱讀</h4>
+                <div class="warning">
+                    ❗ 格式標記使用方式同上，請勿隨意更改
+                </div>
+                <p class="tip">🔄 12月專用變數：</p>
                 <ul>
-                    <li><code>{{rocYear}}</code>: 當前民國年 (e.g., 113)</li>
-                    <li><code>{{currentMonth}}</code>: 當前月份 (e.g., 12)</li>
-                    <li><code>{{nextRocYear}}</code>: 明年的民國年 (e.g., 114)</li>
+                    <li><code>{{rocYear}}</code> → 當前民國年</li>
+                    <li><code>{{currentMonth}}</code> → 當前月份 (12)</li>
+                    <li><code>{{nextRocYear}}</code> → 明年民國年 (例：114)</li>
                 </ul>
             </div>
         </div>
-
         <button onclick="saveSettings()">儲存設定</button>
         <div id="status"></div>
     </div>
-
     <div id="preview-view" class="preview-view-container" style="display: none;">
         <div class="back-btn-container">
             <button class="back-btn" onclick="closePreview()">返回設定</button>
         </div>
         <div id="preview-content-area" class="preview-content-area"></div>
     </div>
-
     <script>
-      // Define defaults in a scope accessible by all functions
-      let defaultSubjectNormal, defaultBodyNormal, defaultSubjectDecember, defaultBodyDecember;
-
       window.onload = function() {
         google.script.run.withSuccessHandler(function(data) {
             if (!data || !data.properties) {
@@ -159,29 +156,50 @@
             }
             const settings = data.properties;
             const defaultSenderName = data.defaultSenderName;
-
             const senderNameLabel = document.getElementById('senderNameLabel');
             senderNameLabel.textContent = `寄件人顯示名稱 (選填，留空則使用預設名稱: ${defaultSenderName})`;
-
             document.getElementById('recipient').value = settings.recipient || 'tfgroup@trendforce.com,tritaipei@trendforce.com,tngroup@trendforce.com';
             document.getElementById('senderName').value = settings.senderName || '';
-
-            defaultSubjectNormal = '【通知】{{rocYear}}年{{currentMonth}}月款項申請(至{{deadlineDate}}前截止)';
-            defaultBodyNormal = 'Dear All,\n\n{{rocYear}}年{{currentMonth}}月份尚未請款的個人費用(代墊款、差旅費等)及廠商款項申請,\n請於{{deadlineDate}}前送至會計處，若有來不及請款的同仁請先與我們聯絡,\n\n重要即日起不受理逾期款項延後請款，遇假日則順延至次一工作日繳交，還請各位幫忙配合，感謝!!重要\n\n粗體請款注意事項：粗體\n• 公司相關請款表單，請至雲端公檔查詢 [點此連結](https://drive.google.com/drive/folders/1mErE9a4yBYffjIMtOpqZg6x_axGFZF3Y)\n• 發票抬頭：各請款公司別的公司名稱及統一編號請注意不要打錯\n• 請款憑證金額及內容請先計算核對\n\n如果有任何問題可以先查詢我們的管理中心小幫手 — [管理中心小幫手](https://notebooklm.google.com/notebook/fab65873-d66f-4bda-8ba4-4cff5a576d19)';
             
-            defaultSubjectDecember = '【通知】{{rocYear}}年{{currentMonth}}月款項申請';
-            defaultBodyDecember = 'Dear All,\n\n{{rocYear}}年即將結束，請大家可以提前將{{currentMonth}}月份尚未請款的個人費用(代墊款、差旅費等)及廠商款項先送出來申請。\n\n另外，接近年底拿到的發票請注意若是{{nextRocYear}}年的不能拿來申請{{rocYear}}年的費用。\n\n請於{{nextRocYear}}年1月5日前送至會計處，若有來不及請款的同仁請先與我們聯絡。\n\n重要即日起不受理逾期款項延後請款，遇假日則順延至次一工作日繳交，還請各位幫忙配合，感謝!!重要\n\n粗體請款注意事項：粗體\n• 公司相關請款表單，請至雲端公檔查詢 [點此連結](https://drive.google.com/drive/folders/1mErE9a4yBYffjIMtOpqZg6x_axGFZF3Y)\n• 發票抬頭：各請款公司別的公司名稱及統一編號請注意不要打錯\n• 請款憑證金額及內容請先計算核對\n\n如果有任何問題可以先查詢我們的管理中心小幫手 — [管理中心小幫手](https://notebooklm.google.com/notebook/fab65873-d66f-4bda-8ba4-4cff5a576d19)';
+            // 新的預設內容 - 完整版本，包含所有格式標記
+            const defaultSubjectNormal = '【通知】{{rocYear}}年{{currentMonth}}月款項申請(至{{deadlineDate}}前截止)';
+            const defaultBodyNormal = `**Dear All,**
 
+**{{rocYear}}年{{currentMonth}}月份尚未請款的個人費用(代墊款、差旅費等)及廠商款項申請，
+請於{{deadlineDate}}前送至會計處，若有來不及請款的同仁請先與我們聯絡，
+如果有問題可以先查詢我們的管理中心小幫手, 裡面可以查到公司相關的HR、財會及行政等相關資訊 — [管理中心小幫手](https://notebooklm.google.com/notebook/fab65873-d66f-4bda-8ba4-4cff5a576d19),**
+
+**紅字**即日起不受理逾期款項延後請款，遇假日則順延至次一工作日繳交，還請各位幫忙配合，感謝!!**紅字**
+
+**黃底**請款注意事項：**黃底**
+l   公司相關請款表單，請至雲端公檔查詢 [點此連結](https://drive.google.com/drive/folders/1mErE9a4yBYffjIMtOpqZg6x_axGFZF3Y)
+l   發票抬頭：各請款公司別的公司名稱及統一編號請注意不要打錯
+l   請款憑證金額及內容請先計算核對`;
+            
+            const defaultSubjectDecember = '【通知】{{rocYear}}年{{currentMonth}}月款項申請';
+            const defaultBodyDecember = `**Dear All,**
+
+**{{rocYear}}年即將結束，請大家可以提前將{{currentMonth}}月份尚未請款的個人費用(代墊款、差旅費等)及廠商款項先送出來申請。**
+
+**另外，接近年底拿到的發票請注意若是{{nextRocYear}}年的不能拿來申請{{rocYear}}年的費用。**
+
+**請於{{nextRocYear}}年1月5日前送至會計處，若有來不及請款的同仁請先與我們聯絡。**
+**如果有任何問題可以先查詢我們的管理中心小幫手 — [管理中心小幫手](https://notebooklm.google.com/notebook/fab65873-d66f-4bda-8ba4-4cff5a576d19)**
+**紅字**即日起不受理逾期款項延後請款，遇假日則順延至次一工作日繳交，還請各位幫忙配合，感謝!!**紅字**
+
+**黃底**請款注意事項：**黃底**
+l   公司相關請款表單，請至雲端公檔查詢 [點此連結](https://drive.google.com/drive/folders/1mErE9a4yBYffjIMtOpqZg6x_axGFZF3Y)
+l   發票抬頭：各請款公司別的公司名稱及統一編號請注意不要打錯
+l   請款憑證金額及內容請先計算核對`;
+            
             document.getElementById('subjectNormal').value = settings.subjectNormal || defaultSubjectNormal;
             document.getElementById('bodyNormal').value = settings.bodyNormal || defaultBodyNormal;
             document.getElementById('subjectDecember').value = settings.subjectDecember || defaultSubjectDecember;
             document.getElementById('bodyDecember').value = settings.bodyDecember || defaultBodyDecember;
-
             document.getElementById('loader').style.display = 'none';
             document.getElementById('main-content').style.display = 'block';
         }).getSettings();
       };
-
       function saveSettings() {
         var statusDiv = document.getElementById('status');
         statusDiv.textContent = '儲存中...';
@@ -194,7 +212,6 @@
           subjectDecember: document.getElementById('subjectDecember').value,
           bodyDecember: document.getElementById('bodyDecember').value
         };
-
         google.script.run.withSuccessHandler(function(response) {
             statusDiv.textContent = response;
             setTimeout(function(){ google.script.host.close(); }, 2000);
@@ -202,7 +219,6 @@
             statusDiv.textContent = '儲存失敗: ' + error.message;
         }).saveSettings(settings);
       }
-
       function previewEmail(type) {
         let subject, body;
         if (type === 'normal') {
@@ -212,10 +228,8 @@
             subject = document.getElementById('subjectDecember').value;
             body = document.getElementById('bodyDecember').value;
         }
-
         document.getElementById('loader').style.display = 'block';
         document.getElementById('main-content').style.display = 'none';
-
         google.script.run.withSuccessHandler(function(processedHtml) {
             document.getElementById('preview-content-area').innerHTML = processedHtml;
             document.getElementById('loader').style.display = 'none';
@@ -224,26 +238,9 @@
             document.getElementById('loader').innerHTML = `<p style="color:red;">預覽產生失敗: ${error.message}</p>`;
         }).generatePreviewHtml({ subject: subject, body: body }, type);
       }
-
       function closePreview() {
         document.getElementById('preview-view').style.display = 'none';
         document.getElementById('main-content').style.display = 'block';
-      }
-
-      function restoreDefaults(type) {
-        const confirmMessage = type === 'normal' 
-            ? '您確定要將「1-11月」的範本還原為預設內容嗎？目前的修改將會遺失。'
-            : '您確定要將「12月」的範本還原為預設內容嗎？目前的修改將會遺失。';
-        
-        if (confirm(confirmMessage)) {
-            if (type === 'normal') {
-                document.getElementById('subjectNormal').value = defaultSubjectNormal;
-                document.getElementById('bodyNormal').value = defaultBodyNormal;
-            } else {
-                document.getElementById('subjectDecember').value = defaultSubjectDecember;
-                document.getElementById('bodyDecember').value = defaultBodyDecember;
-            }
-        }
       }
     </script>
 </body>
