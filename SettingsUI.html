@@ -89,12 +89,8 @@
                     <button class="action-btn preview-btn" onclick="previewEmail('normal')">預覽</button>
                 </div>
             </div>
-            <label for="subjectNormal" style="font-weight:normal; margin-top:10px;">主旨</label>
-            <input type="text" id="subjectNormal">
-            <label for="bodyNormal" style="font-weight:normal; margin-top:10px;">內文</label>
-            <textarea id="bodyNormal"></textarea>
             <details>
-                <summary style="cursor: pointer; font-weight: bold; margin: 15px 0;">⚠️ 修改內文操作說明 (點此展開)</summary>
+                <summary style="cursor: pointer; font-weight: bold; margin: 15px 0; color: red;">⚠️ 修改內文操作說明 (點此展開)</summary>
                 <div class="format-instructions" style="margin-top: 0;">
                     <div class="warning">
                         ❗ 以下格式標記和變數請勿隨意更改，否則可能導致格式錯誤：
@@ -124,6 +120,10 @@
                     </ul>
                 </div>
             </details>
+            <label for="subjectNormal" style="font-weight:normal; margin-top:10px;">主旨</label>
+            <input type="text" id="subjectNormal">
+            <label for="bodyNormal" style="font-weight:normal; margin-top:10px;">內文</label>
+            <textarea id="bodyNormal"></textarea>
         </div>
         <!-- Template for Dec -->
         <div class="form-group template-section">
@@ -134,12 +134,8 @@
                     <button class="action-btn preview-btn" onclick="previewEmail('december')">預覽</button>
                 </div>
             </div>
-            <label for="subjectDecember" style="font-weight:normal; margin-top:10px;">主旨</label>
-            <input type="text" id="subjectDecember">
-            <label for="bodyDecember" style="font-weight:normal; margin-top:10px;">內文</label>
-            <textarea id="bodyDecember"></textarea>
             <details>
-                <summary style="cursor: pointer; font-weight: bold; margin: 15px 0;">⚠️ 修改內文操作說明 (點此展開)</summary>
+                <summary style="cursor: pointer; font-weight: bold; margin: 15px 0; color: red;">⚠️ 修改內文操作說明 (點此展開)</summary>
                 <div class="format-instructions" style="margin-top: 0;">
                     <div class="warning">
                         ❗ 格式標記使用方式同上，請勿隨意更改
@@ -152,6 +148,10 @@
                     </ul>
                 </div>
             </details>
+            <label for="subjectDecember" style="font-weight:normal; margin-top:10px;">主旨</label>
+            <input type="text" id="subjectDecember">
+            <label for="bodyDecember" style="font-weight:normal; margin-top:10px;">內文</label>
+            <textarea id="bodyDecember"></textarea>
         </div>
         <button onclick="saveSettings()">儲存設定</button>
         <div id="status"></div>
