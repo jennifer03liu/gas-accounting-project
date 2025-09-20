@@ -216,14 +216,14 @@ function generatePreviewHtml(templateObject, templateType) {
     
     // Force the month for correct template processing
     const originalDate = Date;
-    global.Date = function() {
+    globalThis.Date = function() {
       if (templateType === 'december') return new originalDate('2023-12-01');
       return new originalDate('2023-01-01');
     };
 
     const { subject, body } = processEmailTemplates(settings);
     
-    global.Date = originalDate; // Restore original Date object
+    globalThis.Date = originalDate; // Restore original Date object
 
     const finalHtmlBody = markdownToHtml(body);
     const signature = getGmailSignature();
