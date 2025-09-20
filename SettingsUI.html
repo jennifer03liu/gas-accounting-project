@@ -93,35 +93,37 @@
             <input type="text" id="subjectNormal">
             <label for="bodyNormal" style="font-weight:normal; margin-top:10px;">內文</label>
             <textarea id="bodyNormal"></textarea>
-            <div class="format-instructions">
-                <h4>⚠️ 重要說明 - 請仔細閱讀</h4>
-                <div class="warning">
-                    ❗ 以下格式標記和變數請勿隨意更改，否則可能導致格式錯誤：
+            <details>
+                <summary style="cursor: pointer; font-weight: bold; margin: 15px 0;">⚠️ 修改內文操作說明 (點此展開)</summary>
+                <div class="format-instructions" style="margin-top: 0;">
+                    <div class="warning">
+                        ❗ 以下格式標記和變數請勿隨意更改，否則可能導致格式錯誤：
+                    </div>
+                    
+                    <p class="tip">🎨 特殊格式標記：</p>
+                    <ul>
+                        <li><code>**紅字**您的文字**紅字**</code> → <span style="background-color:#ffff00; color:#cc0000; font-weight:bold;">黃底紅字粗體</span> (用於重要警告)</li>
+                        <li><code>**黃底**您的文字**黃底**</code> → <span style="background-color:#ffff00; color:#000000; font-weight:bold;">黃底黑字粗體</span> (用於標題)</li>
+                        <li><code>**您的文字**</code> → <strong>一般粗體</strong></li>
+                        <li><code>[顯示文字](網址)</code> → <a href="#">超連結</a></li>
+                        <li><code>l   項目內容</code> 或 <code>•   項目內容</code> → 項目符號清單</li>
+                    </ul>
+                    
+                    <p class="tip">🔄 自動替換變數 (請保持不變)：</p>
+                    <ul>
+                        <li><code>{{rocYear}}</code> → 當前民國年 (例：113)</li>
+                        <li><code>{{currentMonth}}</code> → 當前月份 (例：8)</li>
+                        <li><code>{{deadlineDate}}</code> → 下月5日期限 (例：113年9月5日)</li>
+                    </ul>
+                    
+                    <p class="tip">💡 使用建議：</p>
+                    <ul>
+                        <li>修改內容時請保持現有的格式標記</li>
+                        <li>變數 {{}} 內的文字請勿更改</li>
+                        <li>修改後建議先按「預覽」確認效果</li>
+                    </ul>
                 </div>
-                
-                <p class="tip">🎨 特殊格式標記：</p>
-                <ul>
-                    <li><code>**紅字**您的文字**紅字**</code> → <span style="background-color:#ffff00; color:#cc0000; font-weight:bold;">黃底紅字粗體</span> (用於重要警告)</li>
-                    <li><code>**黃底**您的文字**黃底**</code> → <span style="background-color:#ffff00; color:#000000; font-weight:bold;">黃底黑字粗體</span> (用於標題)</li>
-                    <li><code>**您的文字**</code> → <strong>一般粗體</strong></li>
-                    <li><code>[顯示文字](網址)</code> → <a href="#">超連結</a></li>
-                    <li><code>l   項目內容</code> 或 <code>•   項目內容</code> → 項目符號清單</li>
-                </ul>
-                
-                <p class="tip">🔄 自動替換變數 (請保持不變)：</p>
-                <ul>
-                    <li><code>{{rocYear}}</code> → 當前民國年 (例：113)</li>
-                    <li><code>{{currentMonth}}</code> → 當前月份 (例：8)</li>
-                    <li><code>{{deadlineDate}}</code> → 下月5日期限 (例：113年9月5日)</li>
-                </ul>
-                
-                <p class="tip">💡 使用建議：</p>
-                <ul>
-                    <li>修改內容時請保持現有的格式標記</li>
-                    <li>變數 {{}} 內的文字請勿更改</li>
-                    <li>修改後建議先按「預覽」確認效果</li>
-                </ul>
-            </div>
+            </details>
         </div>
         <!-- Template for Dec -->
         <div class="form-group template-section">
@@ -136,18 +138,20 @@
             <input type="text" id="subjectDecember">
             <label for="bodyDecember" style="font-weight:normal; margin-top:10px;">內文</label>
             <textarea id="bodyDecember"></textarea>
-            <div class="format-instructions">
-                <h4>⚠️ 重要說明 - 請仔細閱讀</h4>
-                <div class="warning">
-                    ❗ 格式標記使用方式同上，請勿隨意更改
+            <details>
+                <summary style="cursor: pointer; font-weight: bold; margin: 15px 0;">⚠️ 修改內文操作說明 (點此展開)</summary>
+                <div class="format-instructions" style="margin-top: 0;">
+                    <div class="warning">
+                        ❗ 格式標記使用方式同上，請勿隨意更改
+                    </div>
+                    <p class="tip">🔄 12月專用變數：</p>
+                    <ul>
+                        <li><code>{{rocYear}}</code> → 當前民國年</li>
+                        <li><code>{{currentMonth}}</code> → 當前月份 (12)</li>
+                        <li><code>{{nextRocYear}}</code> → 明年民國年 (例：114)</li>
+                    </ul>
                 </div>
-                <p class="tip">🔄 12月專用變數：</p>
-                <ul>
-                    <li><code>{{rocYear}}</code> → 當前民國年</li>
-                    <li><code>{{currentMonth}}</code> → 當前月份 (12)</li>
-                    <li><code>{{nextRocYear}}</code> → 明年民國年 (例：114)</li>
-                </ul>
-            </div>
+            </details>
         </div>
         <button onclick="saveSettings()">儲存設定</button>
         <div id="status"></div>

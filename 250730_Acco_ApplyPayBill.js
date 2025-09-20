@@ -218,12 +218,24 @@ function generatePreviewHtml(templateObject, templateType) {
       bodyDecember: templateObject.body
     };
     
-    // Force the month for correct template processing, but use the current year.
+    // Force the month for correct template processing, but use the current year and month.
     const originalDate = Date;
-    const currentYear = new originalDate().getFullYear();
+    const now = new originalDate();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth(); // 0-11
+
     globalThis.Date = function() {
-      if (templateType === 'december') return new originalDate(`${currentYear}-12-01`);
-      return new originalDate(`${currentYear}-01-01`);
+      if (templateType === 'december') {
+        // For December preview, always use December 1st of the current year
+        return new originalDate(currentYear, 11, 1); // Month is 0-indexed
+      } else {
+        // For 'normal' preview, use the current date, but if it's December,
+        // use November instead to ensure the normal template is triggered.
+        if (currentMonth === 11) { // If it's currently December
+          return new originalDate(currentYear, 10, 1); // Use November 1st
+        }
+        return now; // Otherwise, use the actual current date
+      }
     };
 
     const { subject, body } = processEmailTemplates(settings);
