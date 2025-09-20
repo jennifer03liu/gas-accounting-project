@@ -218,11 +218,12 @@ function generatePreviewHtml(templateObject, templateType) {
       bodyDecember: templateObject.body
     };
     
-    // Force the month for correct template processing
+    // Force the month for correct template processing, but use the current year.
     const originalDate = Date;
+    const currentYear = new originalDate().getFullYear();
     globalThis.Date = function() {
-      if (templateType === 'december') return new originalDate('2023-12-01');
-      return new originalDate('2023-01-01');
+      if (templateType === 'december') return new originalDate(`${currentYear}-12-01`);
+      return new originalDate(`${currentYear}-01-01`);
     };
 
     const { subject, body } = processEmailTemplates(settings);
