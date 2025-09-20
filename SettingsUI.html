@@ -3,25 +3,61 @@
 <head>
     <base target="_top">
     <style>
-        body { font-family: 'Roboto', 'Microsoft JhengHei', sans-serif; padding: 20px; }
+        body { font-family: 'Roboto', 'Microsoft JhengHei', sans-serif; padding: 20px; background-color: #f9f9f9; }
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: bold; color: #333; }
-        input[type="text"], input[type="email"] { width: 95%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
-        textarea { width: 95%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; min-height: 250px; white-space: pre-wrap; }
-        button { padding: 12px 20px; background-color: #4285F4; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        input[type="text"], input[type="email"], textarea {
+            width: 95%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+        }
+        textarea {
+            min-height: 300px; /* Requirement: Increased height */
+            white-space: pre-wrap;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        button { 
+            padding: 12px 25px; 
+            background-color: #4285F4; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            transition: background-color 0.3s;
+        }
         button:hover { background-color: #357ae8; }
-        .preview-btn { background-color: #6c757d; font-size: 14px; padding: 8px 12px; margin-left: 10px; }
+        .preview-btn { background-color: #6c757d; font-size: 14px; padding: 8px 15px; margin-left: 10px; }
         .preview-btn:hover { background-color: #5a6268; }
-        #status { margin-top: 15px; font-style: italic; color: green; font-weight: bold; }
-        .template-section { border-top: 2px dashed #eee; padding-top: 15px; }
-        .placeholder-info { font-size: 12px; color: #666; background-color: #f5f5f5; padding: 8px; border-radius: 4px; margin-top: 5px; }
+        #status { margin-top: 15px; font-style: italic; color: #28a745; font-weight: bold; }
+        .template-section { border-top: 2px solid #eee; padding-top: 20px; margin-top: 20px; }
         .label-container { display: flex; align-items: center; justify-content: space-between; width: 95%; }
+        
+        /* Requirement: New format instructions block style */
+        .format-instructions {
+            font-size: 13px;
+            color: #333;
+            background-color: #f0f8ff; /* aliceblue */
+            border-left: 5px solid #4285F4; /* blue */
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            line-height: 1.7;
+        }
+        .format-instructions h4 { margin-top: 0; font-size: 15px; color: #005a9e; }
+        .format-instructions code { background-color: #e0e0e0; padding: 2px 5px; border-radius: 3px; font-family: 'Courier New', Courier, monospace; }
+        .format-instructions .example { color: #555; }
+        .format-instructions .tip { font-weight: bold; }
+
         #loader { text-align: center; padding-top: 80px; font-size: 16px; color: #666; }
         .preview-view-container { position: relative; padding-top: 50px; }
         .back-btn-container { position: absolute; top: 0px; left: 0px; }
         .back-btn { padding: 5px 12px; font-size: 14px; cursor: pointer; border: 1px solid #ccc; border-radius: 20px; background-color: #f1f1f1; font-weight: bold; color: black; }
         .back-btn:hover { background-color: #e0e0e0; }
-        .preview-content-area { border: 1px solid #ddd; padding: 15px; border-radius: 5px; background-color: #f9f9f9; min-height: 400px; }
+        .preview-content-area { border: 1px solid #ddd; padding: 15px; border-radius: 5px; background-color: #fff; min-height: 400px; }
     </style>
 </head>
 <body>
@@ -45,19 +81,22 @@
             </div>
             <label for="subjectNormal" style="font-weight:normal; margin-top:10px;">主旨</label>
             <input type="text" id="subjectNormal">
-            <label for="bodyNormal" style="font-weight:normal; margin-top:10px;">內文 (純文字)</label>
+            <label for="bodyNormal" style="font-weight:normal; margin-top:10px;">內文</label>
             <textarea id="bodyNormal"></textarea>
-            <div class="placeholder-info" style="line-height: 1.6;">
-                <b>自動文字 (可直接複製貼上使用):</b>
-                <ul style="margin: 5px 0; padding-left: 20px;">
-                    <li><code>{{rocYear}}</code> 會在寄信時自動變成 <b>當前民國年</b> (例如: 114)</li>
-                    <li><code>{{currentMonth}}</code> 會在寄信時自動變成 <b>當前月份</b> (例如: 9)</li>
-                    <li><code>{{deadlineDate}}</code> 會自動變成 <b>次月5號</b> 的日期</li>
+            <div class="format-instructions">
+                <h4>📝 格式說明</h4>
+                <p class="tip">特殊格式標記: (實際寄出時會自動轉換)</p>
+                <ul>
+                    <li><code>重要文字重要</code> → <span style="background-color:yellow; color:red; font-weight:bold;">黃底紅字</span></li>
+                    <li><code>粗體文字粗體</code> → <strong>粗體效果</strong></li>
+                    <li><code>[顯示文字](網址)</code> → <a href="#">超連結</a></li>
+                    <li><code>• 項目符號</code> → <ul><li style="margin-left:-20px;">項目符號</li></ul></li>
                 </ul>
-                <b>如何加上超連結:</b>
-                <ul style="margin: 5px 0; padding-left: 20px;">
-                    <li>格式為 <code>[想顯示的文字](網址)</code></li>
-                    <li>例如: <code>[管理中心小幫手](https://...)</code></li>
+                <p class="tip">💡 自動替換變數:</p>
+                <ul>
+                    <li><code>{{rocYear}}</code>: 當前民國年 (e.g., 113)</li>
+                    <li><code>{{currentMonth}}</code>: 當前月份 (e.g., 9)</li>
+                    <li><code>{{deadlineDate}}</code>: 次月5號的日期</li>
                 </ul>
             </div>
         </div>
@@ -70,19 +109,16 @@
             </div>
             <label for="subjectDecember" style="font-weight:normal; margin-top:10px;">主旨</label>
             <input type="text" id="subjectDecember">
-            <label for="bodyDecember" style="font-weight:normal; margin-top:10px;">內文 (純文字)</label>
+            <label for="bodyDecember" style="font-weight:normal; margin-top:10px;">內文</label>
             <textarea id="bodyDecember"></textarea>
-            <div class="placeholder-info" style="line-height: 1.6;">
-                <b>自動文字 (可直接複製貼上使用):</b>
-                <ul style="margin: 5px 0; padding-left: 20px;">
-                    <li><code>{{rocYear}}</code> 會在寄信時自動變成 <b>當前民國年</b> (例如: 114)</li>
-                    <li><code>{{currentMonth}}</code> 會在寄信時自動變成 <b>當前月份</b> (例如: 12)</li>
-                    <li><code>{{nextRocYear}}</code> 會自動變成 <b>明年的民國年</b> (例如: 115)</li>
-                </ul>
-                <b>如何加上超連結:</b>
-                <ul style="margin: 5px 0; padding-left: 20px;">
-                    <li>格式為 <code>[想顯示的文字](網址)</code></li>
-                    <li>例如: <code>[管理中心小幫手](https://...)</code></li>
+            <div class="format-instructions">
+                 <h4>📝 格式說明</h4>
+                <p class="tip">特殊格式標記: (同上)</p>
+                <p class="tip">💡 自動替換變數:</p>
+                <ul>
+                    <li><code>{{rocYear}}</code>: 當前民國年 (e.g., 113)</li>
+                    <li><code>{{currentMonth}}</code>: 當前月份 (e.g., 12)</li>
+                    <li><code>{{nextRocYear}}</code>: 明年的民國年 (e.g., 114)</li>
                 </ul>
             </div>
         </div>
@@ -101,6 +137,10 @@
     <script>
       window.onload = function() {
         google.script.run.withSuccessHandler(function(data) {
+            if (!data || !data.properties) {
+                document.getElementById('loader').innerHTML = '<p style="color:red;">錯誤：無法從後端載入設定。請檢查日誌。</p>';
+                return;
+            }
             const settings = data.properties;
             const defaultSenderName = data.defaultSenderName;
 
@@ -111,10 +151,10 @@
             document.getElementById('senderName').value = settings.senderName || '';
 
             const defaultSubjectNormal = '【通知】{{rocYear}}年{{currentMonth}}月款項申請(至{{deadlineDate}}前截止)';
-            const defaultBodyNormal = 'Dear All,\n\n{{rocYear}}年{{currentMonth}}月份尚未請款的個人費用(代墊款、差旅費等)及廠商款項申請,\n請於{{deadlineDate}}前送至會計處，若有來不及請款的同仁請先與我們聯絡,\n\n即日起不受理逾期款項延後請款，遇假日則順延至次一工作日繳交，還請各位幫忙配合，感謝!!\n\n請款注意事項：\n- 公司相關請款表單，請至雲端公檔查詢 [https://drive.google.com/drive/folders/1mErE9a4yBYffjIMtOpqZg6x_axGFZF3Y](https://drive.google.com/drive/folders/1mErE9a4yBYffjIMtOpqZg6x_axGFZF3Y)\n- 發票抬頭：各請款公司別的公司名稱及統一編號請注意不要打錯\n- 請款憑證金額及內容請先計算核對\n\n如果任何問題可以先查詢我們的管理中心小幫手 — [管理中心小幫手](https://notebooklm.google.com/notebook/fab65873-d66f-4bda-8ba4-4cff5a576d19)';
+            const defaultBodyNormal = 'Dear All,\n\n{{rocYear}}年{{currentMonth}}月份尚未請款的個人費用(代墊款、差旅費等)及廠商款項申請,\n請於{{deadlineDate}}前送至會計處，若有來不及請款的同仁請先與我們聯絡,\n\n重要即日起不受理逾期款項延後請款，遇假日則順延至次一工作日繳交，還請各位幫忙配合，感謝!!重要\n\n粗體請款注意事項：粗體\n• 公司相關請款表單，請至雲端公檔查詢 [點此連結](https://drive.google.com/drive/folders/1mErE9a4yBYffjIMtOpqZg6x_axGFZF3Y)\n• 發票抬頭：各請款公司別的公司名稱及統一編號請注意不要打錯\n• 請款憑證金額及內容請先計算核對\n\n如果有任何問題可以先查詢我們的管理中心小幫手 — [管理中心小幫手](https://notebooklm.google.com/notebook/fab65873-d66f-4bda-8ba4-4cff5a576d19)';
             
             const defaultSubjectDecember = '【通知】{{rocYear}}年{{currentMonth}}月款項申請';
-            const defaultBodyDecember = 'Dear All,\n\n{{rocYear}}年即將結束，請大家可以提前將{{currentMonth}}月份尚未請款的個人費用(代墊款、差旅費等)及廠商款項先送出來申請。\n\n另外，接近年底拿到的發票請注意若是{{nextRocYear}}年的不能拿來申請{{rocYear}}年的費用。\n\n請於{{nextRocYear}}年1月5日前送至會計處，若有來不及請款的同仁請先與我們聯絡。\n\n即日起不受理逾期款項延後請款，遇假日則順延至次一工作日繳交，還請各位幫忙配合，感謝!!\n\n請款注意事項：\n- 公司相關請款表單，請至雲端公檔查詢 [https://drive.google.com/drive/folders/1mErE9a4yBYffjIMtOpqZg6x_axGFZF3Y](https://drive.google.com/drive/folders/1mErE9a4yBYffjIMtOpqZg6x_axGFZF3Y)\n- 發票抬頭：各請款公司別的公司名稱及統一編號請注意不要打錯\n- 請款憑證金額及內容請先計算核對\n\n如果任何問題可以先查詢我們的管理中心小幫手 — [管理中心小幫手](https://notebooklm.google.com/notebook/fab65873-d66f-4bda-8ba4-4cff5a576d19)';
+            const defaultBodyDecember = 'Dear All,\n\n{{rocYear}}年即將結束，請大家可以提前將{{currentMonth}}月份尚未請款的個人費用(代墊款、差旅費等)及廠商款項先送出來申請。\n\n另外，接近年底拿到的發票請注意若是{{nextRocYear}}年的不能拿來申請{{rocYear}}年的費用。\n\n請於{{nextRocYear}}年1月5日前送至會計處，若有來不及請款的同仁請先與我們聯絡。\n\n重要即日起不受理逾期款項延後請款，遇假日則順延至次一工作日繳交，還請各位幫忙配合，感謝!!重要\n\n粗體請款注意事項：粗體\n• 公司相關請款表單，請至雲端公檔查詢 [點此連結](https://drive.google.com/drive/folders/1mErE9a4yBYffjIMtOpqZg6x_axGFZF3Y)\n• 發票抬頭：各請款公司別的公司名稱及統一編號請注意不要打錯\n• 請款憑證金額及內容請先計算核對\n\n如果有任何問題可以先查詢我們的管理中心小幫手 — [管理中心小幫手](https://notebooklm.google.com/notebook/fab65873-d66f-4bda-8ba4-4cff5a576d19)';
 
             document.getElementById('subjectNormal').value = settings.subjectNormal || defaultSubjectNormal;
             document.getElementById('bodyNormal').value = settings.bodyNormal || defaultBodyNormal;
@@ -142,6 +182,8 @@
         google.script.run.withSuccessHandler(function(response) {
             statusDiv.textContent = response;
             setTimeout(function(){ google.script.host.close(); }, 2000);
+        }).withFailureHandler(function(error) {
+            statusDiv.textContent = '儲存失敗: ' + error.message;
         }).saveSettings(settings);
       }
 
@@ -162,6 +204,8 @@
             document.getElementById('preview-content-area').innerHTML = processedHtml;
             document.getElementById('loader').style.display = 'none';
             document.getElementById('preview-view').style.display = 'block';
+        }).withFailureHandler(function(error) {
+            document.getElementById('loader').innerHTML = `<p style="color:red;">預覽產生失敗: ${error.message}</p>`;
         }).generatePreviewHtml({ subject: subject, body: body }, type);
       }
 
