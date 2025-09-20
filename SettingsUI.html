@@ -30,11 +30,16 @@
             transition: background-color 0.3s;
         }
         button:hover { background-color: #357ae8; }
-        .preview-btn { background-color: #6c757d; font-size: 14px; padding: 8px 15px; margin-left: 10px; }
+        .action-btn { font-size: 14px; padding: 8px 15px; margin-left: 10px; }
+        .preview-btn { background-color: #6c757d; }
         .preview-btn:hover { background-color: #5a6268; }
+        .restore-btn { background-color: #ffc107; color: #212529; }
+        .restore-btn:hover { background-color: #e0a800; }
+
         #status { margin-top: 15px; font-style: italic; color: #28a745; font-weight: bold; }
         .template-section { border-top: 2px solid #eee; padding-top: 20px; margin-top: 20px; }
         .label-container { display: flex; align-items: center; justify-content: space-between; width: 95%; }
+        .label-buttons { display: flex; gap: 10px; }
         
         /* Requirement: New format instructions block style */
         .format-instructions {
@@ -77,7 +82,10 @@
         <div class="form-group template-section">
             <div class="label-container">
                 <label>信件範本 (1-11月)</label>
-                <button class="preview-btn" onclick="previewEmail('normal')">預覽</button>
+                <div class="label-buttons">
+                    <button class="action-btn restore-btn" onclick="restoreDefaults('normal')">還原預設內容</button>
+                    <button class="action-btn preview-btn" onclick="previewEmail('normal')">預覽</button>
+                </div>
             </div>
             <label for="subjectNormal" style="font-weight:normal; margin-top:10px;">主旨</label>
             <input type="text" id="subjectNormal">
@@ -90,9 +98,10 @@
                     <li><code>重要文字重要</code> → <span style="background-color:yellow; color:red; font-weight:bold;">黃底紅字</span></li>
                     <li><code>粗體文字粗體</code> → <strong>粗體效果</strong></li>
                     <li><code>[顯示文字](網址)</code> → <a href="#">超連結</a></li>
-                    <li><code>• 項目符號</code> → <ul><li style="margin-left:-20px;">項目符號</li></ul></li>
+                    <li><code>• 項目符號</code> → <ul style="margin:0; padding-left:20px;"><li style="margin-left:-20px;">項目符號</li></ul></li>
                 </ul>
                 <p class="tip">💡 自動替換變數:</p>
+                <p class="tip" style="color: #c0392b;">注意：請務必保留 <code>{{...}}</code> 格式的變數，不要修改或刪除，以免信件內容不完整。</p>
                 <ul>
                     <li><code>{{rocYear}}</code>: 當前民國年 (e.g., 113)</li>
                     <li><code>{{currentMonth}}</code>: 當前月份 (e.g., 9)</li>
@@ -105,7 +114,10 @@
         <div class="form-group template-section">
             <div class="label-container">
                 <label>信件範本 (12月)</label>
-                <button class="preview-btn" onclick="previewEmail('december')">預覽</button>
+                <div class="label-buttons">
+                    <button class="action-btn restore-btn" onclick="restoreDefaults('december')">還原預設內容</button>
+                    <button class="action-btn preview-btn" onclick="previewEmail('december')">預覽</button>
+                </div>
             </div>
             <label for="subjectDecember" style="font-weight:normal; margin-top:10px;">主旨</label>
             <input type="text" id="subjectDecember">
@@ -115,6 +127,7 @@
                  <h4>📝 格式說明</h4>
                 <p class="tip">特殊格式標記: (同上)</p>
                 <p class="tip">💡 自動替換變數:</p>
+                <p class="tip" style="color: #c0392b;">注意：請務必保留 <code>{{...}}</code> 格式的變數，不要修改或刪除，以免信件內容不完整。</p>
                 <ul>
                     <li><code>{{rocYear}}</code>: 當前民國年 (e.g., 113)</li>
                     <li><code>{{currentMonth}}</code>: 當前月份 (e.g., 12)</li>
@@ -135,6 +148,9 @@
     </div>
 
     <script>
+      // Define defaults in a scope accessible by all functions
+      let defaultSubjectNormal, defaultBodyNormal, defaultSubjectDecember, defaultBodyDecember;
+
       window.onload = function() {
         google.script.run.withSuccessHandler(function(data) {
             if (!data || !data.properties) {
@@ -150,11 +166,11 @@
             document.getElementById('recipient').value = settings.recipient || 'tfgroup@trendforce.com,tritaipei@trendforce.com,tngroup@trendforce.com';
             document.getElementById('senderName').value = settings.senderName || '';
 
-            const defaultSubjectNormal = '【通知】{{rocYear}}年{{currentMonth}}月款項申請(至{{deadlineDate}}前截止)';
-            const defaultBodyNormal = 'Dear All,\n\n{{rocYear}}年{{currentMonth}}月份尚未請款的個人費用(代墊款、差旅費等)及廠商款項申請,\n請於{{deadlineDate}}前送至會計處，若有來不及請款的同仁請先與我們聯絡,\n\n重要即日起不受理逾期款項延後請款，遇假日則順延至次一工作日繳交，還請各位幫忙配合，感謝!!重要\n\n粗體請款注意事項：粗體\n• 公司相關請款表單，請至雲端公檔查詢 [點此連結](https://drive.google.com/drive/folders/1mErE9a4yBYffjIMtOpqZg6x_axGFZF3Y)\n• 發票抬頭：各請款公司別的公司名稱及統一編號請注意不要打錯\n• 請款憑證金額及內容請先計算核對\n\n如果有任何問題可以先查詢我們的管理中心小幫手 — [管理中心小幫手](https://notebooklm.google.com/notebook/fab65873-d66f-4bda-8ba4-4cff5a576d19)';
+            defaultSubjectNormal = '【通知】{{rocYear}}年{{currentMonth}}月款項申請(至{{deadlineDate}}前截止)';
+            defaultBodyNormal = 'Dear All,\n\n{{rocYear}}年{{currentMonth}}月份尚未請款的個人費用(代墊款、差旅費等)及廠商款項申請,\n請於{{deadlineDate}}前送至會計處，若有來不及請款的同仁請先與我們聯絡,\n\n重要即日起不受理逾期款項延後請款，遇假日則順延至次一工作日繳交，還請各位幫忙配合，感謝!!重要\n\n粗體請款注意事項：粗體\n• 公司相關請款表單，請至雲端公檔查詢 [點此連結](https://drive.google.com/drive/folders/1mErE9a4yBYffjIMtOpqZg6x_axGFZF3Y)\n• 發票抬頭：各請款公司別的公司名稱及統一編號請注意不要打錯\n• 請款憑證金額及內容請先計算核對\n\n如果有任何問題可以先查詢我們的管理中心小幫手 — [管理中心小幫手](https://notebooklm.google.com/notebook/fab65873-d66f-4bda-8ba4-4cff5a576d19)';
             
-            const defaultSubjectDecember = '【通知】{{rocYear}}年{{currentMonth}}月款項申請';
-            const defaultBodyDecember = 'Dear All,\n\n{{rocYear}}年即將結束，請大家可以提前將{{currentMonth}}月份尚未請款的個人費用(代墊款、差旅費等)及廠商款項先送出來申請。\n\n另外，接近年底拿到的發票請注意若是{{nextRocYear}}年的不能拿來申請{{rocYear}}年的費用。\n\n請於{{nextRocYear}}年1月5日前送至會計處，若有來不及請款的同仁請先與我們聯絡。\n\n重要即日起不受理逾期款項延後請款，遇假日則順延至次一工作日繳交，還請各位幫忙配合，感謝!!重要\n\n粗體請款注意事項：粗體\n• 公司相關請款表單，請至雲端公檔查詢 [點此連結](https://drive.google.com/drive/folders/1mErE9a4yBYffjIMtOpqZg6x_axGFZF3Y)\n• 發票抬頭：各請款公司別的公司名稱及統一編號請注意不要打錯\n• 請款憑證金額及內容請先計算核對\n\n如果有任何問題可以先查詢我們的管理中心小幫手 — [管理中心小幫手](https://notebooklm.google.com/notebook/fab65873-d66f-4bda-8ba4-4cff5a576d19)';
+            defaultSubjectDecember = '【通知】{{rocYear}}年{{currentMonth}}月款項申請';
+            defaultBodyDecember = 'Dear All,\n\n{{rocYear}}年即將結束，請大家可以提前將{{currentMonth}}月份尚未請款的個人費用(代墊款、差旅費等)及廠商款項先送出來申請。\n\n另外，接近年底拿到的發票請注意若是{{nextRocYear}}年的不能拿來申請{{rocYear}}年的費用。\n\n請於{{nextRocYear}}年1月5日前送至會計處，若有來不及請款的同仁請先與我們聯絡。\n\n重要即日起不受理逾期款項延後請款，遇假日則順延至次一工作日繳交，還請各位幫忙配合，感謝!!重要\n\n粗體請款注意事項：粗體\n• 公司相關請款表單，請至雲端公檔查詢 [點此連結](https://drive.google.com/drive/folders/1mErE9a4yBYffjIMtOpqZg6x_axGFZF3Y)\n• 發票抬頭：各請款公司別的公司名稱及統一編號請注意不要打錯\n• 請款憑證金額及內容請先計算核對\n\n如果有任何問題可以先查詢我們的管理中心小幫手 — [管理中心小幫手](https://notebooklm.google.com/notebook/fab65873-d66f-4bda-8ba4-4cff5a576d19)';
 
             document.getElementById('subjectNormal').value = settings.subjectNormal || defaultSubjectNormal;
             document.getElementById('bodyNormal').value = settings.bodyNormal || defaultBodyNormal;
@@ -212,6 +228,22 @@
       function closePreview() {
         document.getElementById('preview-view').style.display = 'none';
         document.getElementById('main-content').style.display = 'block';
+      }
+
+      function restoreDefaults(type) {
+        const confirmMessage = type === 'normal' 
+            ? '您確定要將「1-11月」的範本還原為預設內容嗎？目前的修改將會遺失。'
+            : '您確定要將「12月」的範本還原為預設內容嗎？目前的修改將會遺失。';
+        
+        if (confirm(confirmMessage)) {
+            if (type === 'normal') {
+                document.getElementById('subjectNormal').value = defaultSubjectNormal;
+                document.getElementById('bodyNormal').value = defaultBodyNormal;
+            } else {
+                document.getElementById('subjectDecember').value = defaultSubjectDecember;
+                document.getElementById('bodyDecember').value = defaultBodyDecember;
+            }
+        }
       }
     </script>
 </body>
