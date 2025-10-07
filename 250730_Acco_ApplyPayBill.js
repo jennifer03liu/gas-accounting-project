@@ -1,7 +1,7 @@
 /**
  * @fileoverview 這是一個 Google Apps Script 範本，用於每月在指定日期自動寄送 Email。
  * 此版本可透過 UI 設定參數、預覽信件、並寄送預覽信，且會自動抓取 Gmail 簽名檔。
- * @version 12.0 (Implemented advanced Markdown-like formatting)
+ * @version 13.0 (Implemented holiday and weekend-aware deadline calculation)
  */
 
 // =================================================================
@@ -146,6 +146,7 @@ function processEmailTemplates(settings) {
   const rocYear = currentYear - 1911;
 
   let subject, body;
+  const holidayData = getAndParseHolidayData();
 
   if (currentMonth === 12) {
     subject = settings.subjectDecember || '';
@@ -156,8 +157,7 @@ function processEmailTemplates(settings) {
   } else {
     subject = settings.subjectNormal || '';
     body = settings.bodyNormal || '';
-    const nextMonth = currentMonth + 1;
-    const deadlineDate = `${rocYear}年${nextMonth}月5日`;
+    const deadlineDate = calculateDeadline(currentYear, currentMonth, holidayData.holidays, holidayData.workdays);
     subject = subject.replace(/{{deadlineDate}}/g, deadlineDate);
     body = body.replace(/{{deadlineDate}}/g, deadlineDate);
   }
@@ -166,6 +166,76 @@ function processEmailTemplates(settings) {
   body = body.replace(/{{rocYear}}/g, rocYear).replace(/{{currentMonth}}/g, currentMonth);
 
   return { subject, body };
+}
+
+function getAndParseHolidayData() {
+  const url = "https://calendar.google.com/calendar/ical/zh-tw.taiwan%23holiday%40group.v.calendar.google.com/public/basic.ics";
+  try {
+    const icalData = UrlFetchApp.fetch(url).getContentText();
+    return parseHolidayData(icalData);
+  } catch (e) {
+    console.error("無法獲取或解析日曆資料: " + e.toString());
+    // Return empty arrays on failure to avoid breaking the script
+    return { holidays: [], workdays: [] };
+  }
+}
+
+function parseHolidayData(icalData) {
+  const holidays = [];
+  const workdays = [];
+  const events = icalData.split('BEGIN:VEVENT');
+  
+  events.forEach(event => {
+    if (!event.includes('DTSTART')) return;
+
+    const summaryMatch = event.match(/SUMMARY:(.+)/);
+    const descriptionMatch = event.match(/DESCRIPTION:(.+)/);
+    const dtstartMatch = event.match(/DTSTART;VALUE=DATE:(\d{8})/);
+
+    if (dtstartMatch && summaryMatch && descriptionMatch) {
+      const dateStr = dtstartMatch[1];
+      const summary = summaryMatch[1].trim();
+      const description = descriptionMatch[1].trim();
+      
+      const date = new Date(parseInt(dateStr.substring(0, 4)), parseInt(dateStr.substring(4, 6)) - 1, parseInt(dateStr.substring(6, 8)));
+
+      if (summary.includes('補班')) {
+        workdays.push(date.getTime());
+      } else if (description.includes('國定假日') || summary.includes('補假') || summary.includes('厂礼拜')) {
+        holidays.push(date.getTime());
+      }
+    }
+  });
+
+  return { holidays, workdays };
+}
+
+function calculateDeadline(year, month, holidays, workdays) {
+  // Note: month is 1-based
+  let deadline = new Date(year, month, 5); // month is 0-based in Date constructor, so month becomes next month
+
+  while (true) {
+    const deadlineTime = new Date(deadline.getFullYear(), deadline.getMonth(), deadline.getDate()).getTime();
+    let dayOfWeek = deadline.getDay();
+
+    // If it's a workday, we can stop, even if it's a weekend.
+    if (workdays.indexOf(deadlineTime) !== -1) {
+      break;
+    }
+
+    // If it's a weekend (and not a designated workday) or a holiday, we increment the date.
+    if ((dayOfWeek === 6 || dayOfWeek === 0) || holidays.indexOf(deadlineTime) !== -1) {
+      deadline.setDate(deadline.getDate() + 1);
+    } else {
+      break; // It's a working day
+    }
+  }
+
+  const rocYear = deadline.getFullYear() - 1911;
+  const nextMonth = deadline.getMonth() + 1;
+  const day = deadline.getDate();
+
+  return `${rocYear}年${nextMonth}月${day}日`;
 }
 
 function markdownToHtml(text) {
@@ -185,7 +255,7 @@ function markdownToHtml(text) {
   html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   
   // Links
-  html = html.replace(/\x5B([^\]]+?)\x5D\(([^)]+?)\)/g, '<a href="$2" target="_blank">$1</a>');
+  html = html.replace(/\x5B([^\\\]+?)\x5D\(([^)]+?)\)/g, '<a href="$2" target="_blank">$1</a>');
 
   // List items (handles 'l' or '•')
   html = html.replace(/^\s*[l•]\s+(.*)/gm, '<li>$1</li>');
