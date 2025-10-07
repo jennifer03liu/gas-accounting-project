@@ -63,7 +63,7 @@ function test_markdownToHtml_convertsListItems() {
   const input = '- First item\n- Second item';
   const expected = '<ul><li>First item</li>\n<li>Second item</li>\n</ul>';
   const actual = markdownToHtml(input);
-  assertEquals('markdownToHtml: Should convert dashed list items to an HTML <ul> list', actual, expected);
+  assertEquals('markdownToHtml: Should convert dashed list items to an HTML <ul> list', expected, actual);
 }
 
 function test_markdownToHtml_handlesMixedContent() {

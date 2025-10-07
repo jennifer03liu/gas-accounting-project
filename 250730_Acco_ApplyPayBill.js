@@ -1,7 +1,7 @@
 /**
  * @fileoverview 這是一個 Google Apps Script 範本，用於每月在指定日期自動寄送 Email。
  * 此版本可透過 UI 設定參數、預覽信件、並寄送預覽信，且會自動抓取 Gmail 簽名檔。
- * @version 13.0 (Implemented holiday and weekend-aware deadline calculation)
+ * @version 15.0 (Added year/month selection for preview, unified email content generation)
  */
 
 // =================================================================
@@ -89,7 +89,10 @@ function sendMonthlyEmail() {
   }
 
   console.log(`今天是 ${currentMonth}/${currentDay}，為預定寄信日，開始準備正式郵件。`);
-  _coreSendEmail(settings.recipient, true);
+  const nowDate = new Date();
+  const year = nowDate.getFullYear();
+  const month = nowDate.getMonth() + 1;
+  _coreSendEmail(settings.recipient, true, year, month);
 }
 
 function sendPreviewToSelf() {
@@ -98,17 +101,33 @@ function sendPreviewToSelf() {
         SpreadsheetApp.getUi().alert('無法取得您的 Email 地址，無法寄送預覽信。');
         return;
     }
-    console.log(`準備寄送預覽信至: ${selfEmail}`);
-    _coreSendEmail(selfEmail, false);
-    SpreadsheetApp.getUi().alert(`預覽信件已寄送至您的信箱: ${selfEmail}`);
+    // 彈窗選擇年份和月份
+    const ui = SpreadsheetApp.getUi();
+    const response = ui.prompt('請輸入年份(例如2024)及月份(1-12)', '格式: YYYY-MM，例如: 2024-12', ui.ButtonSet.OK_CANCEL);
+    if (response.getSelectedButton() !== ui.Button.OK) return;
+    const match = response.getResponseText().match(/^(\d{4})-(\d{1,2})$/);
+    if (!match) {
+      ui.alert('格式錯誤，請輸入正確的年份及月份 (例如: 2024-12)');
+      return;
+    }
+    const year = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10);
+    if (month < 1 || month > 12) {
+      ui.alert('月份必須介於 1 到 12');
+      return;
+    }
+    console.log(`準備寄送預覽信至: ${selfEmail}, 年份: ${year}, 月份: ${month}`);
+    _coreSendEmail(selfEmail, false, year, month);
+    ui.alert(`預覽信件已寄送至您的信箱: ${selfEmail}`);
 }
 
-function _coreSendEmail(recipient, isTriggered) {
+function _coreSendEmail(recipient, isTriggered, year, month) {
   try {
     const settings = scriptProperties.getProperties();
     const senderName = settings.senderName;
 
-    const { subject, body } = processEmailTemplates(settings);
+    // 使用指定的年份和月份產生信件內容
+    const { subject, body } = processEmailTemplates(settings, year, month);
 
     if (!recipient || !subject || !body) {
       throw new Error('收件者、信件主旨或內文範本尚未設定。');
@@ -139,8 +158,14 @@ function _coreSendEmail(recipient, isTriggered) {
 // SECTION: 輔助函式
 // =================================================================
 
-function processEmailTemplates(settings) {
-  const now = new Date();
+function processEmailTemplates(settings, year, month) {
+  // year/month 可選，預設用現在
+  let now;
+  if (year && month) {
+    now = new Date(year, month - 1, 1);
+  } else {
+    now = new Date();
+  }
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
   const rocYear = currentYear - 1911;
@@ -152,8 +177,11 @@ function processEmailTemplates(settings) {
     subject = settings.subjectDecember || '';
     body = settings.bodyDecember || '';
     const nextRocYear = rocYear + 1;
+    const deadlineDate = calculateDeadline(currentYear, 12, holidayData.holidays, holidayData.workdays);
     subject = subject.replace(/{{nextRocYear}}/g, nextRocYear);
     body = body.replace(/{{nextRocYear}}/g, nextRocYear);
+    subject = subject.replace(/{{deadlineDate}}/g, deadlineDate);
+    body = body.replace(/{{deadlineDate}}/g, deadlineDate);
   } else {
     subject = settings.subjectNormal || '';
     body = settings.bodyNormal || '';
@@ -255,10 +283,10 @@ function markdownToHtml(text) {
   html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   
   // Links
-  html = html.replace(/\x5B([^\\\]+?)\x5D\(([^)]+?)\)/g, '<a href="$2" target="_blank">$1</a>');
+  html = html.replace(/\x5B([^\\]+?)\x5D\(([^)]+?)\)/g, '<a href="$2" target="_blank">$1</a>');
 
-  // List items (handles 'l' or '•')
-  html = html.replace(/^\s*[l•]\s+(.*)/gm, '<li>$1</li>');
+  // List items (handles 'l', '•', or '-')
+  html = html.replace(/^\s*[l•-]\s+(.*)/gm, '<li>$1</li>');
   html = html.replace(/(<li>.*<\/li>\s*)+/g, '<ul>$&</ul>');
 
   // Newlines
@@ -279,7 +307,7 @@ function getGmailSignature() {
   }
 }
 
-function generatePreviewHtml(templateObject, templateType) {
+function generatePreviewHtml(templateObject, templateType, year, month) {
   try {
     const settings = {
       subjectNormal: templateObject.subject, 
@@ -287,34 +315,25 @@ function generatePreviewHtml(templateObject, templateType) {
       subjectDecember: templateObject.subject, 
       bodyDecember: templateObject.body
     };
-    
-    // Force the month for correct template processing, but use the current year and month.
-    const originalDate = Date;
-    const now = new originalDate();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth(); // 0-11
-
-    globalThis.Date = function() {
+    // 預覽時讓使用者選擇年份和月份
+    let previewYear, previewMonth;
+    if (year && month) {
+      previewYear = year;
+      previewMonth = month;
+    } else {
+      const now = new Date();
+      previewYear = now.getFullYear();
       if (templateType === 'december') {
-        // For December preview, always use December 1st of the current year
-        return new originalDate(currentYear, 11, 1); // Month is 0-indexed
+        previewMonth = 12;
       } else {
-        // For 'normal' preview, use the current date, but if it's December,
-        // use November instead to ensure the normal template is triggered.
-        if (currentMonth === 11) { // If it's currently December
-          return new originalDate(currentYear, 10, 1); // Use November 1st
-        }
-        return now; // Otherwise, use the actual current date
+        previewMonth = now.getMonth() + 1;
+        if (previewMonth === 12) previewMonth = 11;
       }
-    };
-
-    const { subject, body } = processEmailTemplates(settings);
-    
-    globalThis.Date = originalDate; // Restore original Date object
+    }
+    const { subject, body } = processEmailTemplates(settings, previewYear, previewMonth);
 
     const finalHtmlBody = markdownToHtml(body);
     const signature = getGmailSignature();
-    
     return `<h4>主旨: ${subject}</h4><hr>${finalHtmlBody}${signature}`;
   } catch (e) {
     console.error('產生預覽失敗: ' + e.toString());
