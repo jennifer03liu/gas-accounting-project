@@ -24,6 +24,18 @@ function assertEquals(testName, expected, actual) {
   }
 }
 
+function assertDeepEquals(testName, expected, actual) {
+  const expStr = JSON.stringify(expected);
+  const actStr = JSON.stringify(actual);
+  if (expStr === actStr) {
+    console.log(`✅ PASSED: ${testName}`);
+  } else {
+    console.error(`❌ FAILED: ${testName}`);
+    console.error(`  --> Expected: ${expStr}`);
+    console.error(`  --> Actual:   ${actStr}`);
+  }
+}
+
 /**
  * Main function to run all unit tests.
  */
@@ -36,6 +48,14 @@ function runAllTests() {
   test_markdownToHtml_convertsListItems();
   test_markdownToHtml_handlesMixedContent();
   test_markdownToHtml_handlesEmptyInput();
+
+  // 新增 processEmailTemplates/calculateDeadline 測試
+  test_calculateDeadline_basic();
+  test_calculateDeadline_holiday();
+  test_calculateDeadline_workday();
+  test_getSendDate_basic();
+  test_getSendDate_holiday();
+  test_processEmailTemplates_variables();
 
   console.log('==================== Test Run Complete ====================');
 }
@@ -78,4 +98,69 @@ function test_markdownToHtml_handlesEmptyInput() {
   const expected = '';
   const actual = markdownToHtml(input);
   assertEquals('markdownToHtml: Should return an empty string for empty input', expected, actual);
+}
+
+function test_calculateDeadline_basic() {
+  // 2024/8/5 (週一) 非假日
+  const holidays = [];
+  const workdays = [];
+  const result = calculateDeadline(2024, 7, holidays, workdays); // 8月
+  assertEquals('calculateDeadline: 基本週一', '113年8月5日', result);
+}
+
+function test_calculateDeadline_holiday() {
+  // 2024/8/5 (週一) 是假日，應往後推一天
+  const holidays = [new Date(2024, 7, 5).getTime()];
+  const workdays = [];
+  const result = calculateDeadline(2024, 7, holidays, workdays);
+  assertEquals('calculateDeadline: 假日往後推', '113年8月6日', result);
+}
+
+function test_calculateDeadline_workday() {
+  // 2024/8/5 (週一) 是假日，但也是補班日，應不推
+  const holidays = [new Date(2024, 7, 5).getTime()];
+  const workdays = [new Date(2024, 7, 5).getTime()];
+  const result = calculateDeadline(2024, 7, holidays, workdays);
+  assertEquals('calculateDeadline: 補班日不推', '113年8月5日', result);
+}
+
+function test_getSendDate_basic() {
+  // 2024/8/25 (週日) 非假日，應往前推到 23 號 (週五)
+  const holidays = [];
+  const workdays = [];
+  const result = getSendDate(2024, 8, holidays, workdays);
+  assertEquals('getSendDate: 週日往前推', new Date(2024, 7, 23).toISOString().slice(0,10), result.toISOString().slice(0,10));
+}
+
+function test_getSendDate_holiday() {
+  // 2024/8/25 (週日) 是假日，24號(六)也是假日，23號(五)是工作日
+  const holidays = [
+    new Date(2024, 7, 25).getTime(),
+    new Date(2024, 7, 24).getTime()
+  ];
+  const workdays = [];
+  const result = getSendDate(2024, 8, holidays, workdays);
+  assertEquals('getSendDate: 連假往前推', new Date(2024, 7, 23).toISOString().slice(0,10), result.toISOString().slice(0,10));
+}
+
+function test_processEmailTemplates_variables() {
+  // 測試變數替換
+  const settings = {
+    subjectNormal: '【通知】{{rocYear}}年{{currentMonth}}月款項申請(至{{deadlineDate}}前截止)',
+    bodyNormal: '民國年:{{rocYear}}, 月份:{{currentMonth}}, 截止:{{deadlineDate}}',
+    subjectDecember: '【通知】{{rocYear}}年{{currentMonth}}月款項申請，至{{deadlineDate}}截止。',
+    bodyDecember: '民國年:{{rocYear}}, 月份:{{currentMonth}}, 明年:{{nextRocYear}}, 截止:{{deadlineDate}}'
+  };
+  const holidays = [];
+  const workdays = [];
+  // mock calculateDeadline
+  const oldCalculateDeadline = this.calculateDeadline;
+  this.calculateDeadline = function(year, month, h, w) { return '測試截止日'; };
+  // 8月
+  let result = processEmailTemplates(settings, 2024, 8);
+  assertDeepEquals('processEmailTemplates: 8月', {subject:'【通知】113年8月款項申請(至測試截止日前截止)', body:'民國年:113, 月份:8, 截止:測試截止日'}, result);
+  // 12月
+  result = processEmailTemplates(settings, 2024, 12);
+  assertDeepEquals('processEmailTemplates: 12月', {subject:'【通知】113年12月款項申請，至測試截止日截止。', body:'民國年:113, 月份:12, 明年:114, 截止:測試截止日'}, result);
+  this.calculateDeadline = oldCalculateDeadline;
 }
